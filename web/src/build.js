@@ -170,7 +170,7 @@ function render() {
   if (done) { viewer.setFinished(); if (!RM) { viewer.ctrl.autoRotate = true; viewer.ctrl.autoRotateSpeed = 0.8; } }
   else { viewer.setStep(cur); viewer.ctrl.autoRotate = false; }
   updatePauseButton();
-  $('b-pause').hidden = done || cur === 0;
+  $('b-pause').hidden = done || cur === 0 || RM; // with reduced motion there is no animation to pause
   $('ask').hidden = done;
   $('b-zoom').hidden = done || !viewer.hasDetail(); $('b-zoom').setAttribute('aria-pressed', 'true');
   markBench(s);
@@ -257,6 +257,8 @@ function updatePauseButton() {
   const btn = $('b-pause');
 
   btn.querySelector('span').textContent = paused ? 'Resume' : 'Pause';
+  btn.querySelector('.i-pause').toggleAttribute('hidden', paused);
+  btn.querySelector('.i-play').toggleAttribute('hidden', !paused);
   btn.setAttribute('aria-pressed', String(paused));
   btn.title = paused ? 'Resume animation (P)' : 'Pause animation (P)';
 }
@@ -282,7 +284,7 @@ const COACH = TOUCH
 const HELP = TOUCH
   ? [['Drag', 'Turn the view'], ['Pinch', 'Zoom in or out'], ['Two-finger drag', 'Move the view'], ['Double-tap', 'Turn around that point'], ['Tap a part', 'See its letter and name']]
   : [['Drag', 'Turn the view'], ['Scroll or pinch', 'Zoom toward the pointer'], ['Right-drag, <kbd>Shift</kbd>-drag', 'Move the view'], ['Double-click', 'Turn around that point'],
-     ['<kbd>+</kbd><kbd>−</kbd>', 'Zoom in or out'], ['<kbd>0</kbd>', "Back to the step's view"], ['<kbd>R</kbd>', 'Replay the step'], ['<kbd>L</kbd>', 'Labels on or off'], ['<kbd>←</kbd><kbd>→</kbd>', 'Previous or next step']];
+     ['<kbd>+</kbd><kbd>−</kbd>', 'Zoom in or out'], ['<kbd>0</kbd>', "Back to the step's view"], ['<kbd>R</kbd>', 'Replay the step'], ['<kbd>P</kbd>', 'Pause or resume the animation'], ['<kbd>L</kbd>', 'Labels on or off'], ['<kbd>←</kbd><kbd>→</kbd>', 'Previous or next step']];
 $('coach-list').innerHTML = COACH.map(t => `<li>${t}</li>`).join('');
 $('help-list').innerHTML = HELP.map(([k, v]) => `<li><span>${k}</span><span>${v}</span></li>`).join('');
 function showCoach() { $('hint').hidden = store.get('bi-coach') === '1'; }
@@ -303,7 +305,7 @@ addEventListener('keydown', e => {
     viewer.replay();
     updatePauseButton();
   }
-  else if ((k === 'p' || k === 'P') && !done && cur > 0) {
+  else if ((k === 'p' || k === 'P') && !done && cur > 0 && !RM) {
     viewer.toggleAnimationPause();
     updatePauseButton();
   }
