@@ -1,10 +1,11 @@
 // Sign-in by email link ("magic link"): no passwords. The user types their email, gets a link that works once for
 // 15 minutes, and opening it starts a 30-day session (an HttpOnly cookie). See server/db.js for what is stored.
-import nodemailer from 'nodemailer';
+import { sendMail, mailReady, TEST_SENDER } from './mail.js';
 import { createLoginToken, useLoginToken, peekLoginToken, userByEmail, createSession, sessionUser, endSession, endAllSessions, LINK_MINUTES, SESSION_DAYS } from './db.js';
 
 // development (npm run dev sets DEV=1): sign-in links go to the server log, and the link may point at a local address.
-// Anything else needs APP_URL and SMTP_URL, or the server does not start (see checkConfig).
+// Anything else needs APP_URL, MAIL_FROM and an email service (RESEND_API_KEY or SMTP_URL), or the server does not
+// start (see checkConfig).
 export const DEV = process.env.DEV === '1' && process.env.NODE_ENV !== 'production';
 const COOKIE = '__Host-bi_session'; // __Host-: only over https, only for this exact site, never for subdomains
 const ADMINS = new Set((process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean));
@@ -43,8 +44,11 @@ const ipStarts = limiter(10, 60 * 60e3), emailStarts = limiter(3, 15 * 60e3), ip
 /** Stops the server at start when it would run unsafely outside development. */
 export function checkConfig() {
   if (DEV) return;
-  const missing = ['APP_URL', 'SMTP_URL', 'MAIL_FROM'].filter(k => !process.env[k]);
+  const missing = ['APP_URL', 'MAIL_FROM'].filter(k => !process.env[k]);
+  if (!mailReady) missing.push('RESEND_API_KEY (or SMTP_URL)');
   if (missing.length) { console.error(`Not starting: set ${missing.join(', ')} in .env (or DEV=1 for local development).`); process.exit(1); }
+  // Resend's test sender only reaches the Resend account's own address: real visitors would never get their link
+  if (process.env.MAIL_FROM.includes(TEST_SENDER)) { console.error(`Not starting: MAIL_FROM must be an address on your own verified domain, not ${TEST_SENDER}.`); process.exit(1); }
   if (!/^https:\/\//.test(process.env.APP_URL)) { console.error('Not starting: APP_URL must start with https://'); process.exit(1); }
 }
 
@@ -62,22 +66,26 @@ function appUrl(req) {
 }
 
 /* ---------- email ---------- */
-const mailer = process.env.SMTP_URL ? nodemailer.createTransport(process.env.SMTP_URL) : null;
-const FROM = process.env.MAIL_FROM || 'Buildit <no-reply@localhost>';
 async function sendLink(email, url) {
   const text = `Here is your link to sign in to Buildit:\n\n${url}\n\nIt works once, for ${LINK_MINUTES} minutes. If you did not ask for it, ignore this email: nobody can sign in without the link.\n`;
   const html = `<div style="font:16px/1.5 system-ui,sans-serif;color:#15181C;max-width:480px">
     <p>Here is your link to sign in to <b>Buildit</b>.</p>
     <p><a href="${url}" style="display:inline-block;background:#FFB300;color:#2A1E00;font-weight:700;text-decoration:none;padding:12px 20px;border-radius:10px">Sign in to Buildit</a></p>
     <p style="color:#5B626A;font-size:14px">It works once, for ${LINK_MINUTES} minutes. If you did not ask for it, ignore this email: nobody can sign in without the link.</p></div>`;
-  if (!mailer) {
-    if (!DEV) throw new Error('SMTP_URL is not set');
-    // development only, and only into the log on this computer: never into the reply, where anyone who can
-    // reach the dev server (it listens on the Wi-Fi too) could use it to sign in as someone else
-    console.log(`sign-in link for ${email} (no SMTP_URL, so not emailed): ${url}`);
-    return;
+  // development only, and only into the log on this computer: never into the reply, where anyone who can
+  // reach the dev server (it listens on the Wi-Fi too) could use it to sign in as someone else
+  const toLog = why => console.log(`sign-in link for ${email} (${why}): ${url}`);
+  if (!mailReady) {
+    if (!DEV) throw new Error('No email service is set');
+    return toLog('no email service set, so not emailed');
   }
-  await mailer.sendMail({ from: FROM, to: email, subject: 'Your Buildit sign-in link', text, html });
+  try {
+    await sendMail({ to: email, subject: 'Your Buildit sign-in link', text, html });
+  } catch (e) {
+    // in development a failed email (e.g. Resend's test sender writing to someone else) must not lock you out
+    if (!DEV) throw e;
+    toLog(`email failed: ${e.message}`);
+  }
 }
 
 /* ---------- middleware ---------- */

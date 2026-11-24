@@ -151,8 +151,12 @@ HTTPS is required for getUserMedia (live camera) on phones.
 - Access: guides table (owner, public). Owner or public only; guides from before accounts (owner NULL) only for ADMIN_EMAILS. Others get 404.
   Scanning: ADMIN_EMAILS only until payments (`SCAN_ACCESS=everyone` opens it); others see "early access".
   `scripts/notify-scan-open.mjs` sends the one promised "scanning is open" email.
-- Env: `npm run dev` sets DEV=1 (sign-in links printed in server/data/server.log). Without DEV the server refuses to start unless
-  APP_URL (https), SMTP_URL, MAIL_FROM are set; TRUST_PROXY = number of proxies. `npm start` builds first.
+- Email (24 Nov 2026): `server/mail.js` sends everything: Resend when `RESEND_API_KEY` is set, else SMTP (`SMTP_URL`). Keys only
+  in `.env`. Resend's test sender `onboarding@resend.dev` (the development default) only reaches the Resend account's own
+  address; real users need a verified domain and `MAIL_FROM` on it. In development a failed email still prints the link in the log.
+- Env: `npm run dev` sets DEV=1 (sign-in links printed in server/data/server.log when no email is sent). Without DEV the server
+  refuses to start unless APP_URL (https), MAIL_FROM (not the Resend test sender) and RESEND_API_KEY or SMTP_URL are set;
+  TRUST_PROXY = number of proxies. `npm start` builds first.
 - Scripts eval/xcheck sign in as the first ADMIN_EMAILS via `scripts/session.mjs`.
 - Built in a build → independent reviewer agent → fix loop (3 rounds).
 - Website look (17 Nov 2026, replaces bold yellow): "Box & label". The page is the flat-pack box: kraft cardboard ground (#CDAD82,
