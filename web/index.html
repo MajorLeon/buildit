@@ -230,6 +230,29 @@
             <div class="empty" id="thumbs-empty">No pages yet.</div>
           </div>
           <div class="status" id="status" aria-live="polite"></div>
+          <!-- Progress and preparation tips during AI generation -->
+          <div id="scan-wait" class="scan-wait" hidden>
+            <div class="scan-wait-bar"
+                role="progressbar"
+                aria-label="Generating your 3D guide"></div>
+
+            <p>While you wait, prepare a clean workspace and keep
+              your original manual nearby.</p>
+
+            <div class="scan-tools">
+              <h3>Tools you may need</h3>
+
+              <p id="scan-tools-pending">
+                Checking the manual for required tools...
+              </p>
+
+              <ul id="scan-tools-list" hidden></ul>
+
+              <p id="scan-tools-note" hidden>
+                AI-identified tools. Please verify with the original manual.
+              </p>
+            </div>
+          </div>
           <div class="row">
             <button class="btn primary" id="analyze" disabled>Make my 3D guide</button>
             <button class="btn" id="stop" hidden>Stop</button>

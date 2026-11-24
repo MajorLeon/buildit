@@ -349,3 +349,65 @@ body[data-view="build"] header.top, body[data-view="build"] .foot { display: non
 }
 /* "Reset view" stands out once the view has been moved away from the step's own framing */
 .zoom #z-fit.moved { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink) }
+
+/* Scan loading experience */
+.scan-wait {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  margin: 12px 0;
+  background: var(--stock);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.scan-wait p,
+.scan-wait h3 {
+  margin: 0;
+}
+
+.scan-wait-bar {
+  height: 8px;
+  overflow: hidden;
+  background: var(--stock-2);
+  border-radius: 4px;
+}
+
+.scan-wait-bar::before {
+  content: "";
+  display: block;
+  width: 35%;
+  height: 100%;
+  background: var(--ink);
+  border-radius: 4px;
+  animation: scan-loading 1.8s ease-in-out infinite;
+}
+
+@keyframes scan-loading {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+
+.scan-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scan-tools h3 {
+  font-size: 17px;
+}
+
+.scan-tools ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-wait-bar::before {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}

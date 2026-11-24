@@ -9,6 +9,25 @@ let stream = null, ctl = null, onGuide = null;
 
 export function initScan({ onGuideReady }) { onGuide = onGuideReady; render(); }
 
+function showScanTools(tools) {
+  const list = $('scan-tools-list');
+  list.replaceChildren();
+
+  const valid = Array.isArray(tools)
+    ? tools.filter(t => typeof t === 'string' && t.trim()).slice(0, 8)
+    : [];
+
+  for (const tool of valid) {
+    const li = document.createElement('li');
+    li.textContent = tool;
+    list.append(li);
+  }
+
+  list.hidden = valid.length === 0;
+  $('scan-tools-pending').hidden = valid.length > 0;
+  $('scan-tools-note').hidden = valid.length === 0;
+}
+
 function setStatus(msg, kind) {
   const el = $('status'); el.className = 'status' + (kind === 'err' ? ' err' : '');
   el.innerHTML = (kind === 'busy' ? '<span class="spinner"></span>' : '') + `<span></span>`; el.lastChild.textContent = msg;
@@ -137,6 +156,8 @@ $('analyze').onclick = async () => {
   let rejected = null;
   stopCamera();
   ctl = new AbortController(); render(); $('stop').hidden = false;
+  $('scan-wait').hidden = false;
+  showScanTools([]);
   const n = pages.reduce((s, p) => s + (p.pdf ? p.pdf.pages || 1 : 1), 0);
   setStatus(`Reading ${n} page${n > 1 ? 's' : ''}. This usually takes 1–3 minutes.`, 'busy');
   const fd = new FormData(); pages.forEach((p, i) => fd.append('pages', p.blob, p.pdf ? p.pdf.name : `page-${i + 1}.jpg`));
@@ -153,6 +174,7 @@ $('analyze').onclick = async () => {
         const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1); if (!line) continue;
         const msg = JSON.parse(line);
         if (msg.type === 'progress') setStatus(msg.phase === 'checking' ? 'Checking the 3D layout and fixing what does not fit…' : msg.phase === 'comparing' ? 'Comparing the 3D model with the drawings…' : msg.phase === 'thinking' ? 'Studying the drawings…' : msg.steps ? `Writing your guide… ${msg.steps} step${msg.steps > 1 ? 's' : ''} so far` : 'Reading the drawings…', 'busy');
+        if (msg.type === 'tools') showScanTools(msg.tools);
         if (msg.type === 'error') throw Object.assign(new Error(msg.error), { code: msg.code, detail: msg.detail });
         if (msg.type === 'done') done = msg;
       }
@@ -165,7 +187,12 @@ $('analyze').onclick = async () => {
   } catch (e) {
     if (e.code === 'pdf_rejected') rejected = e.detail || 'unknown reason';
     else setStatus(e.name === 'AbortError' ? 'Stopped.' : e.message || 'Something went wrong.', e.name === 'AbortError' ? '' : 'err');
-  } finally { ctl = null; $('stop').hidden = true; render(); }
+  } finally {
+  ctl = null;
+  $('stop').hidden = true;
+  $('scan-wait').hidden = true;
+  render();
+  }
   // Claude would not open the PDF: send its pages as pictures instead (no PDFs are left after this, so it runs once)
   if (rejected != null && await pdfAsPictures(rejected)) $('analyze').click();
 };

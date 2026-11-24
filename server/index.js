@@ -160,6 +160,10 @@ app.post('/api/analyze', requireUser, (req, res, next) => {
     const tidy = g => { const r = autoFix(g); autofixed.push(...r.fixes); r.fixes.forEach(f => console.log('autofix:', f)); return [r.guide, r.issues]; };
     let [guide, checks] = tidy(normalizeGuide(json)), repaired = false;
     const before = countIssues(checks);
+    // Share AI-extracted tools after the first complete, validated response.
+    if (guide.tools.length > 0) {
+    send({ type: 'tools', tools: guide.tools });
+    }
     console.log(`analyze: ${guide.steps.length} steps, check: ${before.error} errors, ${before.warn} warnings`);
     // a repair or compare reply: a list of edits (asked for), or a whole guide (accepted too)
     const readReply = text => {
