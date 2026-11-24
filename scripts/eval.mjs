@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const api = process.env.EVAL_API || 'http://localhost:8787';
+const api = process.env.EVAL_API || `http://localhost:${process.env.PORT || 8787}`;
 const args = process.argv.slice(2), all = args.includes('--all'), only = args.filter(a => !a.startsWith('--'));
 
 const names = (await readdir(path.join(root, 'eval', 'manuals'))).filter(f => /\.pdf$/i.test(f)).map(f => f.replace(/\.pdf$/i, '')).sort()
@@ -55,7 +55,7 @@ async function analyze(fd) {
 async function pdfPages(file) {
   const browser = await chromium.launch({ executablePath: findBrowser(), args: ['--ignore-certificate-errors'] });
   const page = await (await browser.newContext({ ignoreHTTPSErrors: true })).newPage();
-  await page.goto(`${process.env.XCHECK_URL || 'https://localhost:5173'}/render.html`);
+  await page.goto(`${process.env.XCHECK_URL || `https://localhost:${process.env.WEB_PORT || 5173}`}/render.html`);
   const jpgs = await page.evaluate(async ([data, root]) => {
     const lib = `/@fs${root}/node_modules/pdfjs-dist/build/`, pdfjs = await import(lib + 'pdf.mjs');
     pdfjs.GlobalWorkerOptions.workerSrc = lib + 'pdf.worker.mjs';

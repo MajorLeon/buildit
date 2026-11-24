@@ -12,7 +12,7 @@ import { adminSession } from './session.mjs';
 
 const [id, from = '1', to] = process.argv.slice(2);
 if (!id) { console.log('Usage: npm run xcheck -- <guide id> [first step] [last step]'); process.exit(1); }
-const base = process.env.XCHECK_URL || 'https://localhost:5173';
+const base = process.env.XCHECK_URL || `https://localhost:${process.env.WEB_PORT || 5173}`;
 const out = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'server', 'data', 'xcheck', id);
 const exe = findBrowser();
 if (!exe) { console.log('No Chrome found. Set RENDER_BROWSER or run: npx playwright-core install chromium'); process.exit(1); }

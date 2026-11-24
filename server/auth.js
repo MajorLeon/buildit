@@ -58,7 +58,7 @@ function appUrl(req) {
   if (!DEV) throw new Error('APP_URL is not set');
   const o = String(req.headers.origin || '');
   try { const u = new URL(o); if (/^(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(u.hostname)) return u.origin; } catch { /* no origin */ }
-  return 'https://localhost:5173';
+  return `https://localhost:${process.env.WEB_PORT || 5173}`;
 }
 
 /* ---------- email ---------- */

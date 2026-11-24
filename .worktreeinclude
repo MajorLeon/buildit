@@ -1,0 +1,9 @@
+# Files git ignores that a new worktree still needs. `claude -w <name>` copies them into
+# .claude/worktrees/<name>/, so an agent working there (Claude or Codex) has the same keys, test guides, skills and hooks.
+.env
+server/data/
+.claude/skills/
+.claude/agents/
+.claude/settings.local.json
+.agents/
+.codex/

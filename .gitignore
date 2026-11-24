@@ -18,6 +18,8 @@ eval/
 
 # local AI-tool and design-tool setup (skills, hooks, review screenshots, mock-ups)
 .agent/
+.agents/
+.codex/
 .claude/
 .cursor/
 .gemini/
@@ -29,3 +31,6 @@ skills-lock.json
 
 # personal log of fixes and improvements during the course
 IMPROVEMENTS.md
+
+# note one AI tool leaves for the next when switching between Claude and Codex (see AGENTS.md)
+HANDOFF.md

@@ -332,7 +332,7 @@ app.get('/api/guides/:id', viewable, async (req, res) => {
 // production: serve the built web app
 const dist = path.join(here, '..', 'dist');
 // where the compare pass loads web/render.html: this server once the app is built, else the Vite dev server
-const renderBase = () => process.env.RENDER_URL || (existsSync(path.join(dist, 'render.html')) ? `http://localhost:${PORT}` : 'https://localhost:5173');
+const renderBase = () => process.env.RENDER_URL || (existsSync(path.join(dist, 'render.html')) ? `http://localhost:${PORT}` : `https://localhost:${process.env.WEB_PORT || 5173}`);
 // the page itself: only our own scripts; styles inline (the step card sets a few); pictures from data:/blob: URLs
 const CSP = ["default-src 'self'", "script-src 'self' 'wasm-unsafe-eval'", "style-src 'self' 'unsafe-inline'",
   "font-src 'self'", "img-src 'self' data: blob:", "media-src 'self' blob:", "connect-src 'self' blob: data:",
