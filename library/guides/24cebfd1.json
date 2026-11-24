@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "id": "24cebfd1",
+  "example": false,
+  "product": "ok. table fan (3-speed desk fan), article number not readable",
+  "summary": "A 3-speed desk fan: you fit the rear guard, blade, spinner cap and front guard to the motor unit, then set the fan onto its round base.",
+  "people": 1,
+  "time_minutes": 15,
+  "tools": ["Phillips screwdriver"],
+  "scene": {"wall_step":null},
+  "unclear": ["Article number and model name on the back page are not readable","Step 1: exact orientation marks of the rear guard are only partly visible","Step 4: the spinner cap turn direction is read from the arrow (anticlockwise seen from the front)","Step 6: there may be a nut with the bottom screw; no size is printed","Step 8: unclear whether the body only presses into the base or also has to be turned to lock","Step 9: the up/down function of the oscillation knob is assumed","All dimensions are estimated from the drawings (assumed 30 cm desk fan)"],
+  "parts": {
+    "M": {"name":"Fan body (motor head, stand and control housing)","qty":1,"kind":"panel","size_mm":[140,470,215],"look":"largest part: motor housing on a short column, with 4 push buttons (0 1 2 3) at the bottom","finish":null,"material":"white","color":null,"shape":[{"type":"lathe","mat":null,"color":null,"at":[0,145,27.5],"axis":[0,0,-1],"profile":[[25,0],[55,8],[70,40],[66,100],[40,130],[0,135]]},{"type":"cyl","mat":"metal","color":null,"from":[0,145,27.5],"to":[0,145,45.5],"d":8,"d2":8},{"type":"cyl","mat":null,"color":null,"from":[0,-190,-32.5],"to":[0,85,-32.5],"d":40,"d2":40},{"type":"box","mat":null,"color":null,"at":[0,-210,7.5],"size":[140,50,200],"rot":[0,0,0],"r":25},{"type":"cyl","mat":"plastic","color":null,"from":[0,215,-52.5],"to":[0,235,-52.5],"d":14,"d2":14}]},
+    "B": {"name":"Round base","qty":1,"kind":"panel","size_mm":[260,24,260],"look":"flat round disc with a notch or marker at the front","finish":null,"material":"white","color":null,"shape":[{"type":"lathe","mat":null,"color":null,"at":[0,-12,0],"axis":[0,1,0],"profile":[[130,0],[130,12],[120,22],[80,24],[0,24]]}]},
+    "C": {"name":"Rear guard","qty":1,"kind":"panel","size_mm":[335,335,54.5],"look":"round wire guard with a large centre hole, a plastic mounting plate and clips on its rim","finish":null,"material":"white","color":null,"shape":[{"type":"grille","mat":null,"color":null,"at":[0,0,24.75],"axis":[0,0,-1],"d":330,"depth":50,"rings":5,"spokes":40,"wire":2,"rim":5,"twist":0,"hole":120}]},
+    "F": {"name":"Guard nut","qty":1,"kind":"panel","size_mm":[110,110,15],"look":"large ribbed plastic ring, comes screwed onto the front of the motor","finish":null,"material":"plastic","color":null,"shape":[{"type":"lathe","mat":null,"color":null,"at":[0,0,-7.5],"axis":[0,0,1],"profile":[[55,0],[55,15],[45,15],[45,0]]}]},
+    "D": {"name":"Fan blade","qty":1,"kind":"panel","size_mm":[300,300,42],"look":"3-blade propeller with a centre hub","finish":null,"material":"plastic","color":null,"shape":[{"type":"blades","mat":null,"color":null,"at":[0,0,0],"axis":[0,0,1],"d":300,"n":3,"hub":60,"width":110,"pitch":12,"sweep":0,"thick":2}]},
+    "E": {"name":"Spinner cap","qty":1,"kind":"panel","size_mm":[44,44,24],"look":"small domed ribbed cap that screws onto the motor shaft","finish":null,"material":"plastic","color":null,"shape":[{"type":"lathe","mat":null,"color":null,"at":[0,0,-12],"axis":[0,0,1],"profile":[[20,0],[22,10],[15,20],[0,24]]}]},
+    "G": {"name":"Front guard","qty":1,"kind":"panel","size_mm":[335,335,59.5],"look":"domed wire guard with spiral wires and a badge in the middle","finish":null,"material":"white","color":null,"shape":[{"type":"grille","mat":null,"color":null,"at":[0,0,-27.25],"axis":[0,0,1],"d":330,"depth":55,"rings":6,"spokes":48,"wire":2,"rim":5,"twist":30,"hole":0}]},
+    "H": {"name":"Guard clamp screw","qty":1,"kind":"screw","size_mm":null,"look":"small cross-head screw at the bottom of the guard rim","finish":null,"material":null,"color":null,"len_mm":null,"d_mm":null}
+  },
+  "panels": [
+    {"key":"M","part":"M","pos":[0,255,122.5],"rot":[0,0,0],"step":1,"into":["B"]},
+    {"key":"C","part":"C","pos":[0,400,165.25],"rot":[0,0,0],"step":1,"into":["M"]},
+    {"key":"F","part":"F","pos":[0,400,157.5],"rot":[0,0,0],"step":2,"into":["M","C"]},
+    {"key":"D","part":"D","pos":[0,400,200],"rot":[0,0,0],"step":3,"into":["M"]},
+    {"key":"E","part":"E","pos":[0,400,220],"rot":[0,0,0],"step":4,"into":["M","D"]},
+    {"key":"G","part":"G","pos":[0,400,217.25],"rot":[0,0,0],"step":5,"into":["C"]},
+    {"key":"B","part":"B","pos":[0,12,120],"rot":[0,0,0],"step":8,"into":[]}
+  ],
+  "hardware": [
+    {"key":"G-H-0","part":"H","panel":"G","at":[0,-165,-27.25],"dir":"-y","step":6,"turn_step":null,"roll":0}
+  ],
+  "holes": [],
+  "steps": [
+    {"title":"Fit the rear guard","text":"Unscrew the plastic guard nut from the front of the motor. Slide the rear guard onto the motor so its holes fit over the pins and the handle or ribs point down.","tip":"Check that all the pins sit in their holes before going on.","warn":null,"need":[["C",1]],"confidence":"medium","page":null},
+    {"title":"Tighten the guard nut","text":"Screw the guard nut back onto the motor, turning it clockwise until the rear guard is held firmly.","tip":null,"warn":null,"need":[["F",1]],"confidence":"high","page":null},
+    {"title":"Push on the blade","text":"Push the fan blade onto the motor shaft as far as it goes.","tip":"Line up the flat side of the shaft with the slot in the blade hub.","warn":null,"need":[["D",1]],"confidence":"high","page":null},
+    {"title":"Screw on the spinner cap","text":"Screw the spinner cap onto the shaft in the direction of the arrow (anticlockwise seen from the front) until it is tight.","tip":"The cap usually has a reverse thread: turning it clockwise loosens it.","warn":null,"need":[["E",1]],"confidence":"medium","page":null},
+    {"title":"Put on the front guard","text":"Open the clips on the rim of the rear guard. Hook the top of the front guard onto the rear guard, with the badge upright, and press it onto the rim.","tip":"Keep the badge level so the guard is not fitted crooked.","warn":null,"need":[["G",1]],"confidence":"medium","page":null},
+    {"title":"Tighten the bottom screw","text":"Tighten the screw at the bottom of the guard rim with a Phillips screwdriver.","tip":null,"warn":null,"need":[["H",1]],"confidence":"medium","page":null},
+    {"title":"Close the clips","text":"Fold all the clips over the front guard rim until they snap shut.","tip":"Turn the blade by hand: it must not touch either guard.","warn":null,"need":[],"confidence":"high","page":null},
+    {"title":"Attach the base","text":"Set the fan body onto the round base, line up the mark on the body with the notch on the base and press it down until it locks.","tip":null,"warn":null,"need":[["B",1]],"confidence":"medium","page":null},
+    {"title":"Set oscillation","text":"Push the knob on top of the motor down to make the fan swing from side to side. Pull it up to stop the swinging.","tip":null,"warn":null,"need":[],"confidence":"medium","page":null},
+    {"title":"Adjust the tilt","text":"Tilt the fan head up or down by hand to aim the air.","tip":null,"warn":null,"need":[],"confidence":"high","page":null},
+    {"title":"Plug in","text":"Put the plug into a wall socket.","tip":null,"warn":"Only plug in once the fan is fully assembled with both guards closed.","need":[],"confidence":"high","page":null},
+    {"title":"Choose a speed","text":"Press button 1, 2 or 3 for low, medium or high speed. Press 0 to switch off.","tip":null,"warn":null,"need":[],"confidence":"high","page":null},
+    {"title":"Unplug after use","text":"Switch off with button 0 and pull the plug out of the socket before moving or cleaning the fan.","tip":null,"warn":"Always unplug before cleaning or taking the guards off.","need":[],"confidence":"high","page":null}
+  ],
+  "created": "2026-11-01T17:56:40.396Z",
+  "pages": 14
+}

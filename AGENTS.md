@@ -166,6 +166,13 @@ HTTPS is required for getUserMedia (live camera) on phones.
   screen (`web/src/styles.css` tokens + build screen, `web/src/site.css` website pages). Picked from rendered mock-ups after the owner
   rejected three calm palettes as "like other vibe-coded UI": always show rendered mock-ups, not descriptions. Direction contract in
   `.impeccable/surfaces/web-index-html.md`; rules in `DESIGN.md`. References the owner likes: usebygga.com (build-screen usability).
+- Available manuals (24 Nov 2026): `#/manuals` (`web/src/manuals.js`), linked in the header on every page, no sign-in needed.
+  The library = guides with `public = 1` in the guides table, listed under its `title` and `article` columns. Manage it with
+  `node scripts/library.mjs` (list | `add <id> --title "…" --article "…"` | `remove <id>` | `covers [id …]`, the last with
+  `npm run dev` running). `/api/library` returns one card per guide (read from the guide file, cached until it changes) plus
+  the example. Covers are JPEGs of the finished piece: `server/data/covers/<id>.jpg` (`/api/library/:id/cover.jpg`), the
+  example's in `web/public/examples/bookcase-cover.jpg`. The original manual (PDF, page pictures and the guide's `manual`
+  field) stays with the owner and admins, library or not (`manualViewable` in server/index.js).
 - Build screen (17 Nov 2026): full height, no page scroll; top bar (logo, product, tabs Parts · Build n/N · Done, All parts drawer, ? help);
   3D stage left, step panel right with a fixed "Done, next step" bar (3D on top on phones). Step 0 = tick-off parts check (ticks in
   localStorage `bi-ticks-<id>`). `#progress [data-i]` strip is used by `scripts/xcheck.mjs`. Camera (Viewer.js): own wheel zoom toward

@@ -2,7 +2,7 @@
 import 'dotenv/config';
 import express from 'express';
 import multer from 'multer';
-import { mkdir, readFile, writeFile, readdir, appendFile, rm } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, readdir, appendFile, rm, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -11,7 +11,7 @@ import { ANALYZE_PROMPT, ASK_PROMPT, REPAIR_PROMPT, COMPARE_INTRO, COMPARE_PROMP
 import { renderGuide } from './render.js';
 import { scanModel, askModel } from './ai.js';
 import { authRoutes, currentUser, requireUser, sameSiteOnly, canScan, isAdmin, limiter, checkConfig, DEV } from './auth.js';
-import { db, addGuide, guideRow, guidesOf, knownGuideIds, deleteUser } from './db.js';
+import { db, addGuide, guideRow, guidesOf, knownGuideIds, deleteUser, libraryRows, setLibrary } from './db.js';
 import { normalizeGuide } from '../web/src/guide.js';
 import { countIssues, issueLine } from '../web/src/check.js';
 import { autoFix } from '../web/src/autofix.js';
@@ -21,12 +21,27 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.join(here, 'data', 'guides');
 const RAW = path.join(here, 'data', 'raw');
 const PAGES = path.join(here, 'data', 'pages'); // the manual each guide was made from, to show next to its steps
+// the library ("Available manuals") is in the repo, so every copy has it: library/manuals.json, guides/, covers/
+const LIB = path.join(here, '..', 'library'), LIB_GUIDES = path.join(LIB, 'guides'), COVERS = path.join(LIB, 'covers');
+// a guide's file: server/data when this computer made it, else the library copy
+const guideFile = id => { const own = path.join(DATA, `${id}.json`), lib = path.join(LIB_GUIDES, `${id}.json`); return existsSync(own) || !existsSync(lib) ? own : lib; };
 const PORT = Number(process.env.PORT || 8787);
 const REPAIR = process.env.CHECK_REPAIR !== '0'; // second pass that fixes problems the automatic check finds
 // third pass: the model compares pictures of the 3D model with the manual. Off unless RENDER_COMPARE=1: on 14 scans it
 // never corrected a real instruction error, and its pictures show the assembly too small to check (frames the loose parts too)
 const COMPARE = process.env.RENDER_COMPARE === '1';
 checkConfig();
+// the library list in the repo decides what is listed: rows for guides this database has not seen, and the names
+await (async function seedLibrary() {
+  let list = [];
+  try { list = JSON.parse(await readFile(path.join(LIB, 'manuals.json'), 'utf8')); } catch { return; }
+  for (const m of list) {
+    try {
+      if (!guideRow(m.id)) addGuide({ ...JSON.parse(await readFile(guideFile(m.id), 'utf8')), public: true }, null);
+      setLibrary(m.id, true, { title: m.title, article: m.article ?? null });
+    } catch (e) { console.log(`library: ${m.id} left out (${e.message})`); }
+  }
+})();
 await mkdir(DATA, { recursive: true });
 
 // keep a copy of the server's messages in server/data/server.log (scan progress, costs, errors)
@@ -79,6 +94,14 @@ const canView = (user, row) => !!row && (row.public === 1 || (user && (row.owner
 const viewable = (req, res, next) => {
   if (!/^[\w-]+$/.test(req.params.id)) return res.status(400).end();
   if (!canView(req.user, guideRow(req.params.id))) return res.status(404).json({ error: 'Guide not found' });
+  next();
+};
+// the original manual (a third party's document) stays with whoever scanned it: the owner, and admins. A library
+// guide is open to everyone; the manual it was made from is not.
+const ownsGuide = (user, row) => !!(user && row && (row.owner === user.id || isAdmin(user)));
+const manualViewable = (req, res, next) => {
+  if (!/^[\w-]+$/.test(req.params.id)) return res.status(400).end();
+  if (!ownsGuide(req.user, guideRow(req.params.id))) return res.status(404).end();
   next();
 };
 const scanning = new Set(); // one scan at a time per account
@@ -272,7 +295,7 @@ app.post('/api/ask', requireUser, async (req, res) => {
   let g;
   try {
     if (id === 'example-bookcase') g = JSON.parse(await readFile(path.join(here, '..', 'web', 'public', 'examples', 'bookcase.json'), 'utf8'));
-    else if (typeof id === 'string' && /^[\w-]+$/.test(id) && canView(req.user, guideRow(id))) g = JSON.parse(await readFile(path.join(DATA, `${id}.json`), 'utf8'));
+    else if (typeof id === 'string' && /^[\w-]+$/.test(id) && canView(req.user, guideRow(id))) g = JSON.parse(await readFile(guideFile(id), 'utf8'));
   } catch { /* not found below */ }
   if (!g) return res.status(404).json({ error: 'Guide not found' });
   const n = Math.max(0, Math.min(g.steps.length, Number.parseInt(step, 10) || 0)), s = g.steps[n - 1];
@@ -291,8 +314,42 @@ app.get('/api/guides', requireUser, (req, res) => {
   const old = isAdmin(req.user) ? db.prepare('SELECT id, product, steps, created FROM guides WHERE owner IS NULL AND public = 0 ORDER BY created DESC').all() : [];
   res.json([...own, ...old.map(g => ({ ...g, old: true }))]);
 });
-// library guides: free to open, no account needed
-app.get('/api/library', (_req, res) => res.json(db.prepare('SELECT id, product, steps FROM guides WHERE public = 1 ORDER BY product').all()));
+// library guides ("Available manuals"): free to open, no account needed. One card per guide, read from its file
+// (kept until the file changes) plus the example bookcase.
+const cards = new Map();
+const EXAMPLE = path.join(here, '..', 'web', 'public', 'examples');
+async function card(id, file, extra = {}) {
+  const { mtimeMs } = await stat(file);
+  let c = cards.get(id);
+  if (!c || c.mtimeMs !== mtimeMs) {
+    const g = JSON.parse(await readFile(file, 'utf8')), parts = Object.values(g.parts || {});
+    const count = board => parts.filter(p => (p.kind === 'panel') === board).reduce((n, p) => n + (Number(p.qty) || 1), 0);
+    c = { mtimeMs, product: String(g.product || '').replace(/^\s*ok\.\s*/i, ''), summary: g.summary || '', steps: g.steps?.length || 0,
+      minutes: Number(g.time_minutes) || null, people: Number(g.people) || null, boards: count(true), fittings: count(false), tools: g.tools || [] };
+    cards.set(id, c);
+  }
+  const { mtimeMs: _m, ...rest } = c;
+  return { id, ...rest, ...extra };
+}
+const coverUrl = async id => { try { return `/api/library/${id}/cover.jpg?v=${Math.round((await stat(path.join(COVERS, `${id}.jpg`))).mtimeMs)}`; } catch { return null; } };
+app.get('/api/library', async (_req, res) => {
+  const out = [];
+  for (const r of libraryRows()) {
+    try { out.push(await card(r.id, guideFile(r.id), { title: r.title || null, article: r.article || null, cover: await coverUrl(r.id) })); }
+    catch { /* listed, but its file is gone: leave it out */ }
+  }
+  out.forEach(c => (c.title ||= c.product));
+  out.sort((a, b) => a.title.localeCompare(b.title));
+  try {
+    const ex = await card('example-bookcase', path.join(EXAMPLE, 'bookcase.json'), { example: true, article: null,
+      cover: existsSync(path.join(EXAMPLE, 'bookcase-cover.jpg')) ? '/examples/bookcase-cover.jpg' : null });
+    out.unshift({ ...ex, title: ex.product.replace(/\s*\(example\)\s*$/i, '') });
+  } catch { /* no example */ }
+  res.set('Cache-Control', 'no-cache').json(out);
+});
+app.get('/api/library/:id/cover.jpg', viewable, (req, res) => {
+  res.sendFile(path.join(COVERS, `${req.params.id}.jpg`), { maxAge: '30d' }, err => err && res.status(404).end());
+});
 // delete a guide and the manual it was made from (only the owner)
 app.delete('/api/guides/:id', requireUser, async (req, res) => {
   const row = /^[\w-]+$/.test(req.params.id) ? guideRow(req.params.id) : null;
@@ -316,18 +373,19 @@ async function removeGuide(id) {
   db.prepare('DELETE FROM guides WHERE id = ?').run(id);
 }
 // the manual a guide was made from: the PDF, or page n as a picture
-app.get('/api/guides/:id/manual.pdf', viewable, (req, res) => {
+app.get('/api/guides/:id/manual.pdf', manualViewable, (req, res) => {
   res.sendFile(path.join(PAGES, req.params.id, 'manual.pdf'), err => err && res.status(404).end());
 });
-app.get('/api/guides/:id/page/:n', viewable, (req, res) => {
+app.get('/api/guides/:id/page/:n', manualViewable, (req, res) => {
   if (!/^\d{1,3}$/.test(req.params.n)) return res.status(400).end();
   res.sendFile(path.join(PAGES, req.params.id, `${req.params.n.padStart(3, '0')}.jpg`), err => err && res.status(404).end());
 });
 app.get('/api/guides/:id', viewable, async (req, res) => {
   try {
-    const g = JSON.parse(await readFile(path.join(DATA, `${req.params.id}.json`), 'utf8'));
+    const g = JSON.parse(await readFile(guideFile(req.params.id), 'utf8'));
     // what a scan cost and how the checks went is for admins only
     if (!isAdmin(req.user)) { delete g.cost; delete g.model; delete g.check; }
+    if (!ownsGuide(req.user, guideRow(req.params.id))) delete g.manual; // see manualViewable
     res.json(g);
   }
   catch { res.status(404).json({ error: 'Guide not found' }); }

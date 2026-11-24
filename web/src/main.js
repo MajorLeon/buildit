@@ -11,20 +11,23 @@ import { openGuide, onBuildShown, setBuildActive } from './build.js';
 import { loadUser, currentUser, onUserChange, showSignin, rememberNext } from './account.js';
 import { showLanding } from './landing.js';
 import { legalPage } from './legal.js';
+import { showManuals } from './manuals.js';
 import { api, apiJson } from './api.js';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const VIEWS = ['landing', 'signin', 'home', 'build', 'legal', 'msg'];
-const TITLES = { landing: 'Buildit · Flat-pack instructions in 3D', signin: 'Sign in · Buildit', home: 'My guides · Buildit', legal: 'Buildit', msg: 'Buildit' };
+const VIEWS = ['landing', 'signin', 'home', 'manuals', 'build', 'legal', 'msg'];
+const TITLES = { landing: 'Buildit · Flat-pack instructions in 3D', signin: 'Sign in · Buildit', home: 'My guides · Buildit', manuals: 'Available manuals · Buildit', legal: 'Buildit', msg: 'Buildit' };
 
-let shownView = null;
+let shownView = null, cameFrom = null;
 function show(view, title) {
   VIEWS.forEach(v => ($('view-' + v).hidden = v !== view));
   document.body.dataset.view = view;
   $('land-links').hidden = view !== 'landing';
   $('nav-app').hidden = !currentUser() || view === 'home';
   $('nav-signin').hidden = !!currentUser() || view === 'signin';
+  if (view === 'manuals') $('nav-manuals').setAttribute('aria-current', 'page'); else $('nav-manuals').removeAttribute('aria-current');
+  if (view === 'home' || view === 'manuals' || view === 'landing') cameFrom = view; // where a guide's back button returns to
   $('foot').hidden = view === 'build';
   showLanding(view === 'landing');
   setBuildActive(view === 'build');
@@ -61,6 +64,7 @@ async function route() {
     if (!user) { rememberNext('#/app'); return location.replace('#/signin'); }
     show('home'); renderScanAccess(); listGuides(); return;
   }
+  if (h === '#/manuals') { show('manuals'); showManuals(); return; }
   if ((m = h.match(/^#\/(privacy|imprint)$/))) {
     $('legal').innerHTML = legalPage(m[1]); show('legal', `${m[1] === 'privacy' ? 'Privacy' : 'Imprint'} · Buildit`); return;
   }
@@ -70,9 +74,10 @@ async function route() {
       const g = await loadGuide(id);
       if (n !== routeNo) return; // the visitor moved on while it loaded
       show('build', `${g.product} · Buildit`);
-      const back = user ? 'My guides' : 'Home';
+      // back to the list it was opened from: Available manuals, My guides, or the home page
+      const [back, href] = cameFrom === 'manuals' ? ['Available manuals', '#/manuals'] : user ? ['My guides', '#/app'] : ['Home', '#/'];
       $('build-back').setAttribute('aria-label', back); $('build-back').title = back;
-      $('build-back').href = user ? '#/app' : '#/';
+      $('build-back').href = href;
       openGuide(g);
     } catch (e) {
       if (n !== routeNo) return;

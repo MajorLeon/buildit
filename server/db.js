@@ -20,6 +20,9 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS guides_owner ON guides(owner);
   CREATE TABLE IF NOT EXISTS notices (user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, kind TEXT NOT NULL, sent TEXT NOT NULL, PRIMARY KEY (user_id, kind));
 `);
+// columns added later (24 Nov 2026): the name and article number a library guide is listed under
+const guideCols = new Set(db.prepare('PRAGMA table_info(guides)').all().map(c => c.name));
+for (const c of ['title', 'article']) if (!guideCols.has(c)) db.exec(`ALTER TABLE guides ADD COLUMN ${c} TEXT`);
 
 export const hash = s => createHash('sha256').update(s).digest('hex');
 export const newSecret = () => randomBytes(32).toString('base64url');
@@ -84,3 +87,9 @@ export function addGuide(g, owner) {
 export const guideRow = id => db.prepare('SELECT * FROM guides WHERE id = ?').get(id) ?? null;
 export const guidesOf = owner => db.prepare('SELECT id, product, steps, created FROM guides WHERE owner = ? ORDER BY created DESC').all(owner);
 export const knownGuideIds = () => new Set(db.prepare('SELECT id FROM guides').all().map(r => r.id));
+/* ---------- library ("Available manuals"): public guides anyone can open, no account needed ---------- */
+export const libraryRows = () => db.prepare('SELECT id, product, title, article FROM guides WHERE public = 1').all();
+/** Puts a guide in the library (listed under title and article number) or takes it out. */
+export function setLibrary(id, on, { title = null, article = null } = {}) {
+  return db.prepare('UPDATE guides SET public = ?, title = COALESCE(?, title), article = COALESCE(?, article) WHERE id = ?').run(on ? 1 : 0, title, article, id).changes > 0;
+}

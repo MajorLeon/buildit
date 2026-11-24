@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "id": "17036d6b",
+  "example": false,
+  "product": "TRISENS / BLISKA dining chair, model TR-92",
+  "summary": "Fit the two leg pieces together in a cross, then screw the leg cross under the upholstered seat shell.",
+  "people": 1,
+  "time_minutes": 15,
+  "tools": ["Allen key (G, included)"],
+  "scene": {"wall_step":null},
+  "unclear": ["Bolt lengths and diameters are not printed; the sizes given are estimates.","The leg material and colour cannot be read from the line drawing.","Exact chair dimensions are not printed; the sizes are estimated from the drawings.","The seat shell is modelled as one curved upholstered shell. The quilting is not shown."],
+  "parts": {
+    "A": {"name":"Seat shell (seat and backrest)","qty":1,"kind":"panel","size_mm":[460,872.8972164382672,723.506180764171],"look":"Upholstered quilted seat with a high backrest. It has 4 screw holes in its underside.","finish":null,"material":"fabric","color":null,"shape":[{"type":"plate","mat":null,"color":null,"plane":"xz","outline":[[-200,-220],[-225,-100],[-230,50],[-220,170],[-180,215],[-100,228],[100,228],[180,215],[220,170],[230,50],[225,-100],[200,-220],[100,-228],[-100,-228]],"thick":60,"at":[0,-237.30439421227152,133.75309038208545],"r":20},{"type":"sweep","mat":null,"color":null,"path":[[0,-220,-80.30448216295187],[0,-180,-95.30448216295187],[0,220,-145.30448216295187]],"profile":[[-215,25],[-145,0],[-70,-12],[0,-16],[70,-12],[145,0],[215,25],[208,58],[140,34],[70,24],[0,20],[-70,24],[-140,34],[-208,58]],"bend":40,"up":[0,0,1]},{"type":"box","mat":"black","color":null,"at":[0,-274.3043942122715,123.75309038208545],"size":[300,8,300],"rot":[0,0,0],"r":0}]},
+    "B": {"name":"Leg piece B","qty":1,"kind":"panel","size_mm":[460,430,460],"look":"Two splayed legs joined by a top bar. The bar has a notch in the middle that faces down.","finish":null,"material":"black","color":null,"shape":[{"type":"tube","mat":null,"color":null,"path":[[-215,-200,215],[-165,200,165],[165,200,-165],[215,-200,-215]],"d":30,"bend":20,"square":true}]},
+    "C": {"name":"Leg piece C","qty":1,"kind":"panel","size_mm":[460,430,460],"look":"Two splayed legs joined by a top bar. The bar has a notch in the middle that faces up, matching B.","finish":null,"material":"black","color":null,"shape":[{"type":"tube","mat":null,"color":null,"path":[[215,-200,215],[165,200,165],[-165,200,-165],[-215,-200,-215]],"d":30,"bend":20,"square":true}]},
+    "D": {"name":"Short Allen bolt","qty":1,"kind":"allen_bolt","size_mm":null,"look":"The short bolt. There is only one.","finish":null,"material":null,"color":null,"len_mm":15,"d_mm":6},
+    "E": {"name":"Long Allen bolt","qty":4,"kind":"allen_bolt","size_mm":null,"look":"The longer bolts. There are four.","finish":null,"material":null,"color":null,"len_mm":35,"d_mm":6},
+    "F": {"name":"Washer","qty":5,"kind":"washer","size_mm":null,"look":"Flat round washer","finish":null,"material":null,"color":null,"len_mm":null,"d_mm":16},
+    "G": {"name":"Allen key","qty":1,"kind":"other","size_mm":null,"look":"L-shaped hex key","finish":null,"material":null,"color":null,"len_mm":null,"d_mm":null}
+  },
+  "panels": [
+    {"key":"A1","part":"A","pos":[0,708.3043942122715,111.24690961791455],"rot":[0,0,0],"step":2,"into":[]},
+    {"key":"B1","part":"B","pos":[0,215,235],"rot":[0,0,0],"step":1,"into":[]},
+    {"key":"C1","part":"C","pos":[0,215,235],"rot":[0,0,0],"step":1,"into":["B1"]}
+  ],
+  "hardware": [
+    {"key":"C1-F-0","part":"F","panel":"C1","at":[0,185,0],"dir":"-y","step":1,"turn_step":null,"roll":0},
+    {"key":"C1-D-1","part":"D","panel":"C1","at":[0,185,0],"dir":"-y","step":1,"turn_step":null,"roll":0},
+    {"key":"B1-F-2","part":"F","panel":"B1","at":[-130,185,130],"dir":"-y","step":2,"turn_step":null,"roll":0},
+    {"key":"B1-E-3","part":"E","panel":"B1","at":[-130,185,130],"dir":"-y","step":2,"turn_step":null,"roll":0},
+    {"key":"B1-F-4","part":"F","panel":"B1","at":[130,185,-130],"dir":"-y","step":2,"turn_step":null,"roll":0},
+    {"key":"B1-E-5","part":"E","panel":"B1","at":[130,185,-130],"dir":"-y","step":2,"turn_step":null,"roll":0},
+    {"key":"C1-F-6","part":"F","panel":"C1","at":[130,185,130],"dir":"-y","step":2,"turn_step":null,"roll":0},
+    {"key":"C1-E-7","part":"E","panel":"C1","at":[130,185,130],"dir":"-y","step":2,"turn_step":null,"roll":0},
+    {"key":"C1-F-8","part":"F","panel":"C1","at":[-130,185,-130],"dir":"-y","step":2,"turn_step":null,"roll":0},
+    {"key":"C1-E-9","part":"E","panel":"C1","at":[-130,185,-130],"dir":"-y","step":2,"turn_step":null,"roll":0}
+  ],
+  "holes": [],
+  "groups": [
+    {"key":"upside_down","panels":["A1","B1","C1"],"until":3,"rot":[0,0,180]}
+  ],
+  "steps": [
+    {"title":"Join the legs in a cross","text":"Push leg pieces B and C into each other crosswise so the notches in the middle lock together. Fix them in the centre with the short bolt D and one washer F, using the Allen key G.","tip":"Use the short bolt D here. Keep the four long bolts E for the seat.","warn":null,"need":[["B",1],["C",1],["D",1],["F",1]],"confidence":"high","page":3},
+    {"title":"Screw the leg cross under the seat","text":"Lay the seat shell A upside down on a soft surface. Place the leg cross on it so the 4 holes in the leg bars line up with the 4 holes in the seat. Fix it with the 4 long bolts E and 4 washers F, using the Allen key.","tip":"Start all 4 bolts by hand before tightening any of them, so the holes stay lined up.","warn":null,"need":[["A",1],["E",4],["F",4]],"confidence":"high","page":3},
+    {"title":"Tighten and stand the chair up","text":"Check all joints and tighten every bolt firmly. Turn the chair over and stand it on its legs. Tighten all bolts again after about 5 weeks.","tip":"Loose bolts make the chair wobble. Check them regularly.","warn":"Maximum user weight is 110 kg. Do not stand on the chair.","need":[],"confidence":"high","page":3}
+  ],
+  "created": "2026-11-07T13:05:34.388Z",
+  "pages": 1
+}

@@ -19,4 +19,9 @@ window.showStep = async s => {
   }
   viewer.setStep(s, true); viewer.detail = false; viewer.goCam(true); await frames(3);
 };
+// the finished piece, no tags: the cover picture of a library guide (scripts/library.mjs covers)
+window.showFinished = async () => {
+  if (viewer.wall) { viewer.root.remove(viewer.wall); viewer.wall = null; } // the piece alone, not the wall it is fixed to
+  viewer.setLabels(false); viewer.setFinished(true); await frames(4);
+};
 window.renderReady = true;
