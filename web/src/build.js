@@ -169,6 +169,8 @@ function render() {
   placeCoach(); layoutStage();
   if (done) { viewer.setFinished(); if (!RM) { viewer.ctrl.autoRotate = true; viewer.ctrl.autoRotateSpeed = 0.8; } }
   else { viewer.setStep(cur); viewer.ctrl.autoRotate = false; }
+  updatePauseButton();
+  $('b-pause').hidden = done || cur === 0;
   $('ask').hidden = done;
   $('b-zoom').hidden = done || !viewer.hasDetail(); $('b-zoom').setAttribute('aria-pressed', 'true');
   markBench(s);
@@ -250,7 +252,24 @@ $('tabs').onclick = e => {
 
 /* ---------- 3D view controls ---------- */
 $('b-labels').onclick = () => { const v = $('b-labels').getAttribute('aria-pressed') !== 'true'; $('b-labels').setAttribute('aria-pressed', v); viewer.setLabels(v); };
-$('b-replay').onclick = () => viewer.replay();
+function updatePauseButton() {
+  const paused = viewer.animationPaused;
+  const btn = $('b-pause');
+
+  btn.querySelector('span').textContent = paused ? 'Resume' : 'Pause';
+  btn.setAttribute('aria-pressed', String(paused));
+  btn.title = paused ? 'Resume animation (P)' : 'Pause animation (P)';
+}
+
+$('b-pause').onclick = () => {
+  viewer.toggleAnimationPause();
+  updatePauseButton();
+};
+
+$('b-replay').onclick = () => {
+  viewer.replay();
+  updatePauseButton();
+};
 $('b-zoom').onclick = () => { const v = $('b-zoom').getAttribute('aria-pressed') !== 'true'; $('b-zoom').setAttribute('aria-pressed', v); viewer.setDetail(v); };
 $('z-in').onclick = () => viewer.zoomBy(0.72);
 $('z-out').onclick = () => viewer.zoomBy(1 / 0.72);
@@ -280,7 +299,14 @@ addEventListener('keydown', e => {
   else if (k === '+' || k === '=') viewer.zoomBy(0.72);
   else if (k === '-' || k === '_') viewer.zoomBy(1 / 0.72);
   else if (k === '0') $('z-fit').click();
-  else if (k === 'r' || k === 'R') viewer.replay();
+  else if (k === 'r' || k === 'R') {
+    viewer.replay();
+    updatePauseButton();
+  }
+  else if ((k === 'p' || k === 'P') && !done && cur > 0) {
+    viewer.toggleAnimationPause();
+    updatePauseButton();
+  }
   else if (k === 'l' || k === 'L') $('b-labels').click();
   else return;
   e.preventDefault();

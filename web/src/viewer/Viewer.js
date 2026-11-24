@@ -18,6 +18,8 @@ export class Viewer {
   constructor(canvas, labelsEl, { colors, reducedMotion = false } = {}) {
     this.canvas = canvas; this.labelsEl = labelsEl; this.colors = colors; this.RM = reducedMotion;
     this.cur = 0; this.detail = true; this.showLabels = true; this.objs = []; this.byKey = {}; this.t0 = 0;
+    this.animationPaused = false;
+    this.pausedAt = 0;
     this.onPick = null; this.flash = null; this.tween = null;
 
     const R = this.R = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -390,7 +392,11 @@ export class Viewer {
   frame(now) {
     if (!this.guide) return;
     const pl = this.plan[this.cur], cycle = DUR + pl.span + 2.2;
-    const el = this.RM || this.finished ? Infinity : ((now - this.t0) / 1000) % cycle;
+    const el = this.RM || this.finished
+      ? Infinity
+      : this.animationPaused
+        ? this.pausedAt
+        : ((now - this.t0) / 1000) % cycle;
     this.applyState(this.cur, el);
     const pulse = 0.5 + 0.5 * Math.sin(now / 260), acc = new THREE.Color(this.colors.accent);
     const fresh = this.finished ? new Set() : new Set([...pl.moving, ...pl.added, ...pl.turning]);
@@ -417,11 +423,33 @@ export class Viewer {
   /* ---------- controls ---------- */
   setStep(s, instant = false) {
     this.cur = Math.max(0, Math.min(this.N, s)); this.detail = true; this.finished = false; this.t0 = performance.now();
+    this.animationPaused = false;
+    this.pausedAt = 0;
     this.buildLabels(); this.goCam(instant);
   }
   hasDetail() { return !this.finished && !!this.plan?.[this.cur]?.cam.detail; }
   setDetail(v) { this.detail = v; this.goCam(false); }
-  replay() { this.t0 = performance.now(); this.goCam(false); }
+  replay() {
+    this.t0 = performance.now();
+    this.animationPaused = false;
+    this.pausedAt = 0;
+    this.goCam(false);
+  }
+
+  toggleAnimationPause() {
+    const now = performance.now();
+    const cycle = DUR + this.plan[this.cur].span + 2.2;
+
+    if (this.animationPaused) {
+      this.t0 = now - this.pausedAt * 1000;
+      this.animationPaused = false;
+    } else {
+      this.pausedAt = ((now - this.t0) / 1000) % cycle;
+      this.animationPaused = true;
+    }
+
+    return this.animationPaused;
+  }
   setLabels(v) { this.showLabels = v; this.buildLabels(); }
   flashPart(part) { this.flash = { part, until: performance.now() + 1800 }; }
   isVisible(part) { return this.objs.some(o => o.part === part && o.group.visible); }
